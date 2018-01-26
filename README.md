@@ -1,7 +1,7 @@
-bam2bedgraph
-==============
+cassette_reannotation
+=====================
 
-Convert .bam alignment files to bedgraph or bigwig format. 
+A set of rust tools used in the Conboy paper analysis.
 
 Requires:
 
@@ -11,37 +11,33 @@ To build:
 
 Run ```cargo build```
 
-Help documentation:
+Here is the list of tools and their description:
 
-```
-bam2bedgraph 1.0.0
-Ben Booth <benwbooth@gmail.com>
-Convert bam files to bedgraph/bigWig format
+- bam2bedgraph
 
-USAGE:
-    bam2bedgraph [FLAGS] [OPTIONS] <BAMFILE>
+`Convert a BAM annotation file into a bedGraph or bigWig file.`
 
-FLAGS:
-        --bigwig     Output bigwig files (requires bedGraphToBigWig in $PATH)
-        --fixchr     Transform chromosome names to be UCSC-compatible
-    -h, --help       Prints help information
-        --paired     Only output paired read alignments
-        --primary    Only output primary read alignments
-        --proper     Only output proper-paired read alignments
-        --read       Split output bedgraph by read number
-        --uniq       Keep only unique alignments (NH:i:1)
-    -V, --version    Prints version information
-        --zero       Pad output bedgraph with zeroes
+- cassette_reannotation
 
-OPTIONS:
-        --autostrand <AUTOSTRAND_FILE>    Attempt to determine the strandedness of the input data using an annotation file. Must be a .bam file. [default: ]
-        --split_strand <DESCRIPTION>      Split output bedgraph by strand: Possible values: u s r uu us ur su ss sr ru rs rr, first char is read1, second is
-                                          read2, u=unstranded, s=stranded, r=reverse [default: uu]
-        --out <PREFIX>                    Output file prefix [default: ]
-        --trackname <TRACKNAME>           Name of track for the track line [default: ]
-        --split <split_exons>             Use CIGAR string to split alignment into separate exons (default) [default: true]
-        --trackline <trackline>           Output a UCSC track line (default) [default: true]
+`Given an input annotation and a set of BAM files, discover any unannotated
+cassette exons and produce a reannotation with new transcript features
+that include the discovered cassettes.`
 
-ARGS:
-    <BAMFILE>    Convert a bam file into a bedgraph/bigwig file.
-```
+- cassette_lengths
+
+`Produce a histogram of cassette exon lengths within the intron of a
+transcript in another gene.`
+
+- exon_cov
+
+`Given an input annotation and a set of BAM files, produce a list of exon
+base coverages and RPKM values.`
+
+- adjusted_intron_psi
+
+`Given an input annotation, a set of BAM files, and a SplAdder retained intron
+output table, produce a new retained intron table with corrected
+adjusted PSI values.`
+
+More information about each tool can be found by executing the tool
+with the `--help` argument.
