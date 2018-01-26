@@ -1,5 +1,5 @@
 [package]
-name = "bam2bedgraph"
+name = "cassette_reannotation"
 version = "1.0.0"
 authors = ["Ben Booth <benwbooth@gmail.com>"]
 
@@ -46,20 +46,20 @@ name = "bam2bedgraph"
 path = "src/bam2bedgraph.rs"
 
 [[bin]]
-name = "intronrpkm"
-path = "src/intronrpkm.rs"
+name = "cassette_reannotation"
+path = "src/cassette_reannotation.rs"
 
 [[bin]]
 name = "cassette_lengths"
 path = "src/cassette_lengths.rs"
 
 [[bin]]
-name = "rpkm"
-path = "src/rpkm.rs"
+name = "exon_cov"
+path = "src/exon_cov.rs"
 
 [[bin]]
-name = "adjusted_intron_cov"
-path = "src/adjusted_intron_cov.rs"
+name = "adjusted_intron_psi"
+path = "src/adjusted_intron_psi.rs"
 
 [profile.dev]
 opt-level = 2

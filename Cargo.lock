@@ -51,33 +51,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bam2bedgraph"
-version = "1.0.0"
-dependencies = [
- "bio 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "concurrent-hashmap 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "csv 1.0.0-beta.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "duct 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "futures 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
- "futures-cpupool 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "itertools 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "linked-hash-map 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ordered-float 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "regex 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rust-htslib 0.15.0 (git+https://github.com/rust-bio/rust-htslib.git)",
- "serde 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "structopt 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "unindent 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "bio"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -131,6 +104,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "bytecount"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "cassette_reannotation"
+version = "1.0.0"
+dependencies = [
+ "bio 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "concurrent-hashmap 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "csv 1.0.0-beta.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "duct 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
+ "futures-cpupool 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "linked-hash-map 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ordered-float 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "regex 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rust-htslib 0.15.0 (git+https://github.com/rust-bio/rust-htslib.git)",
+ "serde 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "structopt 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "unindent 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "cc"
