@@ -61,5 +61,9 @@ path = "src/exon_cov.rs"
 name = "adjusted_intron_psi"
 path = "src/adjusted_intron_psi.rs"
 
+[[bin]]
+name = "gff2bb"
+path = "src/gff2bb.rs"
+
 [profile.dev]
 opt-level = 2
