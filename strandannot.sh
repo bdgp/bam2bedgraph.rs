@@ -14,3 +14,4 @@ bedtools merge -c 7 -o distinct -s -i "${1%.*}.sorted.$(basename "${1##*.}")" |p
 bedtools subtract -S -a "${1%.*}.sorted.merged.$(basename "${1##*.}")" -b "${1%.*}.sorted.merged.$(basename "${1##*.}")" >"${1%.*}.sorted.merged.subtracted.$(basename "${1##*.}")"
 bedtools bedtobam -i "${1%.*}.sorted.merged.subtracted.$(basename "${1##*.}")" -g "$2" >"${1%.*}.autostrand.bam"
 samtools index "${1%.*}.autostrand.bam"
+rm -v "${1%.*}.sorted.$(basename "${1##*.}")" "${1%.*}.sorted.merged.$(basename "${1##*.}")" "${1%.*}.sorted.merged.subtracted.$(basename "${1##*.}")"
