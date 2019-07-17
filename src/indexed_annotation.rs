@@ -196,7 +196,7 @@ impl IndexedAnnotation {
             let mut file = BufReader::new(&f);
             let mut buf = String::new();
             while file.read_line(&mut buf)? > 0 {
-                {   let line = buf.trim_right_matches('\n').trim_right_matches('\r');
+                {   let line = buf.trim_end_matches('\n').trim_end_matches('\r');
                     let cols: Vec<&str> = line.split('\t').collect();
                     if let Some(key) = cols.get(0) {
                         if let Some(value) = cols.get(1) {
@@ -214,7 +214,7 @@ impl IndexedAnnotation {
             let mut file = BufReader::new(&f);
             let mut buf = String::new();
             while file.read_line(&mut buf)? > 0 {
-                {   let line = buf.trim_right_matches('\n').trim_right_matches('\r');
+                {   let line = buf.trim_end_matches('\n').trim_end_matches('\r');
                     let cols: Vec<&str> = line.split('\t').collect();
                     if let Some(key) = cols.get(0) {
                         if let Some(value) = cols.get(1) {
@@ -233,7 +233,7 @@ impl IndexedAnnotation {
         let mut refs = HashMap::<String,u64>::new();
         let mut buf = String::new();
         while file.read_line(&mut buf)? > 0 {
-            {   let line = buf.trim_right_matches('\n').trim_right_matches('\r');
+            {   let line = buf.trim_end_matches('\n').trim_end_matches('\r');
                 let row = rows.len();
                 if let Ok(record) = Record::from_row(row, &line, filetype, &chrmap) {
                     if let Some(id) = record.attributes.get("ID") {
@@ -756,7 +756,7 @@ impl IndexedAnnotation {
         let mut sequence: Option<String> = None;
         let mut buf = String::new();
         while file.read_line(&mut buf)? > 0 {
-            {   let line = buf.trim_right_matches('\n').trim_right_matches('\r');
+            {   let line = buf.trim_end_matches('\n').trim_end_matches('\r');
                 if let Some(cap) = HEADER.captures(&line) {
                     if let Some(header) = header {
                         if let Some(attrs) = attrs {

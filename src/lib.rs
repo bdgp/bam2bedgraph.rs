@@ -128,7 +128,7 @@ pub fn read_sizes_file(sizes_file: &str, chrmap: &HashMap<String,String>) -> Res
     let mut file = BufReader::new(&f);
     let mut buf = String::new();
     while file.read_line(&mut buf)? > 0 {
-        {   let line = buf.trim_right_matches('\n').trim_right_matches('\r');
+        {   let line = buf.trim_end_matches('\n').trim_end_matches('\r');
             let cols: Vec<&str> = line.split('\t').collect();
             if let Some(chr) = cols.get(0) {
                 let chr = String::from(*chr);
