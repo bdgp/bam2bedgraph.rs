@@ -350,8 +350,9 @@ fn analyze_bam(options: &Options,
                     h.resize(ref_length as usize, 0);
                 }
 
-                for pos in exon {
-                    let h = histogram.get_mut(&tuple).r()?;
+                let h = histogram.get_mut(&tuple).r()?;
+                for pos in std::cmp::max(0u64, exon.start)..std::cmp::min(ref_length as u64, exon.end)
+                {
                     (*h)[pos as usize] += 1;
                 }
             }
