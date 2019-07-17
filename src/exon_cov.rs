@@ -60,7 +60,7 @@ struct Options {
     // output file
     #[structopt(long="out", short="o", help = "Output file", name="OUT_FILE", default_value="-")]
     outfile: String,
-    #[structopt(long="merged", short="m", help = "Merged Output file", name="MERGED_OUT_FILE", default_value="-")]
+    #[structopt(long="merged", short="m", help = "Merged Output file", name="MERGED_OUT_FILE")]
     merged_outfile: Option<String>,
     // feature types filter
     #[structopt(long="exon_type", help = "The exon type(s) to search for", name="EXON_TYPE")]
@@ -269,7 +269,7 @@ fn write_exon_cov_to_file(
                     strand: strand,
                     start: exon.0.start,
                     end: exon.0.end,
-                    cov: OrderedFloat((exon_cov / exon_length as f64)),
+                    cov: OrderedFloat(exon_cov / exon_length as f64),
                     rpkm: OrderedFloat(rpkm),
                     transcript_id: transcript_id,
                     gene_id: gene_id,

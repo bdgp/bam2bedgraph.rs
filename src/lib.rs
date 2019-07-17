@@ -15,6 +15,7 @@ extern crate regex;
 
 extern crate rust_htslib;
 use rust_htslib::bam::record::Cigar;
+use rust_htslib::bam::record::CigarStringView;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;
 
@@ -93,7 +94,7 @@ pub mod power_set {
     }
 }
 
-pub fn cigar2exons(cigar: &[Cigar], pos: u64) -> Result<Vec<Range<u64>>> {
+pub fn cigar2exons(cigar: &CigarStringView, pos: u64) -> Result<Vec<Range<u64>>> {
     let mut exons = Vec::<Range<u64>>::new();
     let mut pos = pos;
     for op in cigar {
@@ -109,9 +110,6 @@ pub fn cigar2exons(cigar: &[Cigar], pos: u64) -> Result<Vec<Range<u64>>> {
             &Cigar::Equal(length) |
             &Cigar::Diff(length) => {
                 pos += length as u64;
-            }
-            &Cigar::Back(length) => {
-                pos -= length as u64;
             }
             &Cigar::Ins(_) |
             &Cigar::SoftClip(_) |

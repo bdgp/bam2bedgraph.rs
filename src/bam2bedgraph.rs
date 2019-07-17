@@ -38,7 +38,7 @@ extern crate duct;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "bam2bedgraph", about = "Convert bam files to bedgraph/bigWig format")]
 struct Options {
-    #[structopt(long = "split", help = "Use CIGAR string to split alignment into separate exons (default)", default_value="true")]
+    #[structopt(long = "split", help = "Use CIGAR string to split alignment into separate exons (default)")]
     split_exons: bool,
     #[structopt(long = "read", help = "Split output bedgraph by read number")]
     split_read: bool,
@@ -50,7 +50,7 @@ struct Options {
     proper_only: bool,
     #[structopt(long = "primary", help = "Only output primary read alignments")]
     primary_only: bool,
-    #[structopt(long = "trackline", help = "Output a UCSC track line (default)", default_value="true")]
+    #[structopt(long = "trackline", help = "Output a UCSC track line (default)")]
     trackline: bool,
     #[structopt(long = "bigwig", help = "Output bigwig files (requires bedGraphToBigWig in $PATH)")]
     bigwig: bool,

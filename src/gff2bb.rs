@@ -19,7 +19,7 @@ extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "intronrpkm", about = "Analyze RPKM values in intronic space")]
+#[structopt(name = "gff2bb", about = "Convert GFF/GTF to bigBed format")]
 struct Options {
     // input files
     #[structopt(long="gff", help = "A genome annotation file in gff3 format", name="ANNOT_GFF_FILE")]
@@ -44,7 +44,7 @@ struct Options {
     gene_type: Vec<String>,
     #[structopt(long="cds_type", help = "The CDS type(s) to search for", name="CDS_TYPE")]
     cds_type: Vec<String>,
-    #[structopt(long="trackdb", help = "Write a UCSC trackDb.txt file with all the bigwigs/bigbeds", name="DEBUG_TRACKDB_FILE")]
+    #[structopt(long="trackdb", help = "Write a UCSC trackDb.txt file with all the bigwigs/bigbeds", name="TRACKDB_FILE")]
     trackdb: Option<String>,
 }
 

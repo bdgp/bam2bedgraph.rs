@@ -180,9 +180,9 @@ impl std::fmt::Debug for ConstituitivePair {
 fn find_constituitive_splice_pairs(annot: &IndexedAnnotation,
                             options: &Options)
                             -> Result<Vec<ConstituitivePair>> {
-    let gene_types: HashSet<_> = options.gene_type.iter().map(|t| String::from(t.as_ref())).collect();
-    let transcript_types: HashSet<_> = options.transcript_type.iter().map(|t| String::from(t.as_ref())).collect();
-    let exon_types: HashSet<_> = options.exon_type.iter().map(|t| String::from(t.as_ref())).collect();
+    let gene_types: HashSet<_> = options.gene_type.iter().map(|t| String::from(t)).collect();
+    let transcript_types: HashSet<_> = options.transcript_type.iter().map(|t| String::from(t)).collect();
+    let exon_types: HashSet<_> = options.exon_type.iter().map(|t| String::from(t)).collect();
     
     // set default feature types
     let mut exonpairs = Vec::<ConstituitivePair>::new();

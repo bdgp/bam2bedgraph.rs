@@ -535,11 +535,11 @@ impl IndexedAnnotation {
         gene_types: &[String])
         -> Result<()>
     {
-        let exon_types = exon_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
-        let mut cds_types = cds_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
+        let exon_types = exon_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
+        let mut cds_types = cds_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
         if cds_types.is_empty() { cds_types.insert(String::from("CDS")); }
-        let transcript_types = transcript_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
-        let gene_types = gene_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
+        let transcript_types = transcript_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
+        let gene_types = gene_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
         let mut seen_transcript = HashSet::<usize>::new();
         let mut transcript_names = HashSet::<String>::new();
         
@@ -794,9 +794,9 @@ impl IndexedAnnotation {
         -> Result<()> 
     {
         let genome = IndexedAnnotation::read_fasta(genome_file)?;
-        let exon_types = exon_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
-        let transcript_types = transcript_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
-        let gene_types = gene_types.iter().map(|t| String::from(t.as_ref())).collect::<HashSet<String>>();
+        let exon_types = exon_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
+        let transcript_types = transcript_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
+        let gene_types = gene_types.iter().map(|t| String::from(t)).collect::<HashSet<String>>();
         
         let mut bw = BufWriter::new(File::create(&fasta_file)?);
         let mut chrs = self.tree.keys().collect::<Vec<_>>();
