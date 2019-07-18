@@ -38,8 +38,8 @@ extern crate duct;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "bam2bedgraph", about = "Convert bam files to bedgraph/bigWig format")]
 struct Options {
-    #[structopt(long = "split", help = "Use CIGAR string to split alignment into separate exons (default)")]
-    split_exons: bool,
+    #[structopt(long = "nosplit", help = "Do not use CIGAR string to split alignment into separate exons")]
+    nosplit_exons: bool,
     #[structopt(long = "read", help = "Split output bedgraph by read number")]
     split_read: bool,
     #[structopt(long = "zero", help = "Pad output bedgraph with zeroes")]
@@ -50,8 +50,8 @@ struct Options {
     proper_only: bool,
     #[structopt(long = "primary", help = "Only output primary read alignments")]
     primary_only: bool,
-    #[structopt(long = "trackline", help = "Output a UCSC track line (default)")]
-    trackline: bool,
+    #[structopt(long = "notrackline", help = "Do not output a UCSC track line")]
+    notrackline: bool,
     #[structopt(long = "bigwig", help = "Output bigwig files (requires bedGraphToBigWig in $PATH)")]
     bigwig: bool,
     #[structopt(long = "uniq", help = "Keep only unique alignments (NH:i:1)")]
@@ -124,7 +124,7 @@ fn open_file(options: &Options,
     // initialize the file if needed
     if !fhs.contains_key(&filename) {
         let mut f = BufWriter::new(File::create(&filename)?);
-        if options.trackline && !options.bigwig {
+        if !options.notrackline && !options.bigwig {
             writeln!(f,
                      "track type=bedGraph name=\"{}\" description=\"{}\" visibility=full",
                      track_name,
@@ -266,7 +266,7 @@ fn analyze_bam(options: &Options,
 
         let mut exons: Vec<Range<u64>> = Vec::new();
         let mut get_exons = cigar2exons(&read.cigar(), read.pos() as u64)?;
-        if !options.split_exons && !get_exons.is_empty() {
+        if options.nosplit_exons && !get_exons.is_empty() {
             let first = get_exons.get(0).r()?;
             let last = get_exons.get(get_exons.len() - 1).r()?;
             // if the exon does not have positive width, skip it
