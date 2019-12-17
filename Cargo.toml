@@ -21,9 +21,11 @@ futures-cpupool = "*"
 num_cpus = "*"
 ordered-float = "*"
 duct = "*"
+rust-htslib = "*"
+percent-encoding = "*"
 
-[dependencies.rust-htslib]
-git = "https://github.com/rust-bio/rust-htslib.git"
+#[dependencies.rust-htslib]
+#git = "https://github.com/rust-bio/rust-htslib.git"
 
 [dependencies.serde]
 version = "*"
@@ -66,4 +68,4 @@ name = "gff2bb"
 path = "src/gff2bb.rs"
 
 [profile.dev]
-opt-level = 2
+#opt-level = 2

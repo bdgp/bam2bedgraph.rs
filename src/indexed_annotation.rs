@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use std::hash::{Hash, Hasher};
 use regex::Regex;
 use regex::Captures;
-use url::percent_encoding::{percent_decode, utf8_percent_encode, SIMPLE_ENCODE_SET};
+use percent_encoding::{percent_decode, utf8_percent_encode, CONTROLS, AsciiSet};
 use bio::data_structures::interval_tree::IntervalTree;
 use bio::utils::Interval;
 use bio::alphabets::dna;
@@ -131,10 +131,8 @@ impl Record {
     }
     
     pub fn to_gff(&self) -> Result<String> {
-        define_encode_set! {
-            pub GFF_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'\t', '\r', '\n', ';', '%', '='}
-        }
-        Ok(format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}", 
+        const GFF_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'\t').add(b'\r').add(b'\n').add(b';').add(b'%').add(b'=');
+        Ok(format!("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
             self.seqname, 
             self.source, 
             self.feature_type,
@@ -444,7 +442,7 @@ impl IndexedAnnotation {
     }
     
     pub fn to_gtf(&self, filename: &str) -> Result<()> {
-        let mut output: BufWriter<Box<Write>> = BufWriter::new(
+        let mut output: BufWriter<Box<dyn Write>> = BufWriter::new(
             if filename == "-" { Box::new(stdout()) } 
             else { Box::new(File::create(filename)?) });
             
@@ -488,7 +486,7 @@ impl IndexedAnnotation {
     }
     
     pub fn to_gff(&self, filename: &str) -> Result<()> {
-        let mut output: BufWriter<Box<Write>> = BufWriter::new(
+        let mut output: BufWriter<Box<dyn Write>> = BufWriter::new(
             if filename == "-" { Box::new(stdout()) } 
             else { Box::new(File::create(filename)?) });
             
@@ -700,7 +698,7 @@ impl IndexedAnnotation {
         cds_types: &[String],
         transcript_types: &[String],
         gene_types: &[String],
-        trackdb: &mut BufWriter<Box<Write>>)
+        trackdb: &mut BufWriter<Box<dyn Write>>)
         -> Result<()> 
     {
         // write the bed file
@@ -722,10 +720,8 @@ impl IndexedAnnotation {
         //std::fs::remove_file(&bed_file)?;
         // remove the genome file
         std::fs::remove_file(&genome_filename)?;
-        
-        define_encode_set! {
-            pub PATH_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'+', '?', '&'}
-        }
+
+        const PATH_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'+').add(b'?').add(b'&');
         let url = utf8_percent_encode(file, PATH_ENCODE_SET);
         let track_name = Path::new(file).file_stem().r()?.to_str().r()?;
         // write to the trackDb.txt file
@@ -856,11 +852,9 @@ impl IndexedAnnotation {
                                     static ref FASTA_FORMAT: Regex = Regex::new(r".{1,72}").unwrap();
                                 }
                                 transcript_seq = FASTA_FORMAT.replace_all(&transcript_seq,"$0\n").into_owned();
-                                
-                                define_encode_set! {
-                                    pub GFF_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'\t', '\r', '\n', ';', '%', '='}
-                                }
-                                let attrs = transcript.attributes.iter().map(|(k,v)| 
+
+                                const GFF_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'\t').add(b'\r').add(b'\n').add(b';').add(b'%').add(b'=');
+                                let attrs = transcript.attributes.iter().map(|(k,v)|
                                     format!("{}={}", 
                                         utf8_percent_encode(k, GFF_ENCODE_SET), 
                                         utf8_percent_encode(v, GFF_ENCODE_SET))).join("; ");
