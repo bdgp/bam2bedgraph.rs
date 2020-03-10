@@ -1,4 +1,3 @@
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::collections::BTreeMap;
 use std::io::Write;
 use std::io::BufWriter;
@@ -7,33 +6,20 @@ use std::str;
 use std::path::{PathBuf, Path};
 use std::vec::Vec;
 use std::ops::Range;
+use anyhow::{Result, anyhow};
+use duct::cmd;
 
-#[macro_use]
-extern crate failure;
-
-extern crate regex;
 use regex::Regex;
 
-extern crate rust_htslib;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::Reader;
 
-extern crate bio;
 use bio::data_structures::interval_tree::IntervalTree;
 use bio::utils::Interval;
 
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
-
 use structopt::StructOpt;
 
-extern crate bam2bedgraph;
 use bam2bedgraph::cigar2exons;
-use bam2bedgraph::error::*;
-
-#[macro_use]
-extern crate duct;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "bam2bedgraph", about = "Convert bam files to bedgraph/bigWig format")]
@@ -87,7 +73,7 @@ fn open_file(options: &Options,
     let track_name = vec![if !options.trackname.is_empty() {
                               options.trackname.clone()
                           } else {
-                              let p = prefix.as_path().to_str().r()?;
+                              let p = prefix.as_path().to_str().ok_or(anyhow!("NoneError"))?;
                               p.to_string()
                           },
                           if options.split_read && read_number > 0 {
@@ -105,7 +91,7 @@ fn open_file(options: &Options,
     let filename = vec![if !options.out.is_empty() {
                             options.out.clone()
                         } else {
-                            let p = prefix.as_path().to_str().r()?;
+                            let p = prefix.as_path().to_str().ok_or(anyhow!("NoneError"))?;
                             p.to_string()
                         },
                         if options.split_read && read_number > 0 {
@@ -145,8 +131,8 @@ fn write_chr(options: &Options,
         let read_number = key.0;
         let strand = &key.1;
         let filename = open_file(options, read_number, strand, split_strand, fhs)?;
-        let f = fhs.get_mut(&filename).r()?;
-        let file = f.as_mut().r()?;
+        let f = fhs.get_mut(&filename).ok_or(anyhow!("NoneError"))?;
+        let file = f.as_mut().ok_or(anyhow!("NoneError"))?;
         let mut writer = BufWriter::new(file);
 
         // scan the histogram to produce the bedgraph data
@@ -183,7 +169,7 @@ fn analyze_bam(options: &Options,
                intervals: &Option<BTreeMap<String, IntervalTree<u64, u8>>>)
                -> Result<()> {
     if !Path::new(&options.bamfile).exists() {
-        bail!("Bam file {} could not be found!", &options.bamfile)
+        return Err(anyhow!("Bam file {} could not be found!", &options.bamfile))
     }
     let mut bam = Reader::from_path(&options.bamfile)?;
     let header = bam.header().clone();
@@ -497,7 +483,7 @@ fn run() -> Result<()> {
     }
     let regex = Regex::new(r"^[usr][usr]$")?;
     if !regex.is_match(&options.split_strand) {
-        bail!("Invalid value for split_strand: \"{}\": values must be \
+        anyhow!("Invalid value for split_strand: \"{}\": values must be \
                                        one of: u s r uu us ur su ss sr ru rs rr",
                            options.split_strand);
     }
@@ -506,7 +492,7 @@ fn run() -> Result<()> {
     let mut intervals: Option<BTreeMap<String, IntervalTree<u64, u8>>> = None;
     if !options.autostrand.is_empty() {
         if !Path::new(&options.autostrand).exists() {
-            bail!("Autostrand Bam file {} could not be found!", &options.autostrand);
+            anyhow!("Autostrand Bam file {} could not be found!", &options.autostrand);
         }
         let mut bam = rust_htslib::bam::Reader::from_path(&options.autostrand)?;
         let header = bam.header().clone();

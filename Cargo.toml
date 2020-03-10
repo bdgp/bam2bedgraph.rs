@@ -2,10 +2,11 @@
 name = "cassette_reannotation"
 version = "1.0.0"
 authors = ["Ben Booth <benwbooth@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 regex = "*"
-failure = "*"
+anyhow = "*"
 structopt = "*"
 structopt-derive = "*"
 bio = "*"

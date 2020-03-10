@@ -1,21 +1,12 @@
-#![recursion_limit="128"]
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::vec::Vec;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::io::{stdout, sink};
+use anyhow::{Result, anyhow};
 
-#[macro_use] 
-extern crate failure;
-
-extern crate bam2bedgraph;
 use bam2bedgraph::*;
-use bam2bedgraph::error::*;
 use bam2bedgraph::indexed_annotation::*;
 
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -75,7 +66,7 @@ fn run() -> Result<()> {
     } else if let Some(annotfile_gtf) = options.annotfile_gtf.clone() {
         eprintln!("Reading annotation file {:?}", &annotfile_gtf);
         IndexedAnnotation::from_gtf(&annotfile_gtf, 
-            options.gene_type.get(0).r()?, 
+            options.gene_type.get(0).ok_or(anyhow!("NoneError"))?,
             options.transcript_type.get(0).unwrap_or(&transcript_type),
             &options.chrmap_file,
             &options.vizchrmap_file)?
@@ -89,7 +80,7 @@ fn run() -> Result<()> {
     }
 
     // set up the trackdb writer
-    let mut trackdb: BufWriter<Box<Write>> = BufWriter::new(
+    let mut trackdb: BufWriter<Box<dyn Write>> = BufWriter::new(
         match options.trackdb.as_ref().map(String::as_ref) {
             Some("-") => Box::new(stdout()),
             Some(f) => Box::new(File::create(f)?),
@@ -107,13 +98,8 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
-
-    if let Err(ref e) = run() {
-        eprintln!("error: {}", e);
-        eprintln!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }

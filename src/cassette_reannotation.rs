@@ -1,5 +1,3 @@
-#![recursion_limit="128"]
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::str;
 use std::vec::Vec;
 use std::collections::HashMap;
@@ -11,68 +9,36 @@ use std::io::{BufWriter, Write};
 use std::io::{stdout, sink};
 use std::path::Path;
 use std::sync::Arc;
+use serde::{Serialize, Deserialize};
+use duct::cmd;
+use lazy_static::lazy_static;
+use anyhow::{Result, anyhow};
 
-#[macro_use] 
-extern crate failure;
-
-extern crate bam2bedgraph;
 use bam2bedgraph::*;
-use bam2bedgraph::error::*;
 use bam2bedgraph::power_set::*;
 use bam2bedgraph::indexed_annotation::*;
 
-#[macro_use] 
-extern crate lazy_static;
+use percent_encoding::{utf8_percent_encode, CONTROLS};
 
-#[macro_use]
-extern crate url;
-use url::percent_encoding::{utf8_percent_encode, SIMPLE_ENCODE_SET};
-
-extern crate regex;
 use regex::Regex;
 use regex::Captures;
 
-extern crate rust_htslib;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;
 
-extern crate bio;
 use bio::data_structures::interval_tree::IntervalTree;
 use bio::utils::Interval;
 
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
 use structopt::StructOpt;
 
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
-extern crate itertools;
 use itertools::Itertools;
 
-extern crate concurrent_hashmap;
 use concurrent_hashmap::*;
-
-extern crate futures;
 use futures::Future;
-extern crate futures_cpupool;
 use futures_cpupool::CpuPool;
-
-extern crate num_cpus;
-
-extern crate ordered_float;
 use ordered_float::OrderedFloat;
 
-#[macro_use]
-extern crate duct;
-
-extern crate unindent;
 use unindent::unindent;
-
-extern crate linked_hash_map;
 use linked_hash_map::LinkedHashMap;
 
 #[derive(StructOpt, Debug)]
@@ -342,7 +308,7 @@ fn bed2bigbed(
     refs: &LinkedHashMap<String,u64>, 
     sort_bed: bool,
     remove_bed: bool,
-    trackdb: &mut BufWriter<Box<Write>>) 
+    trackdb: &mut BufWriter<Box<dyn Write>>)
     -> Result<()> 
 {
     // write the genome file
@@ -371,11 +337,9 @@ fn bed2bigbed(
     std::fs::remove_file(&genome_filename)?;
     
     // write to the trackDb file
-    define_encode_set! {
-        pub PATH_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'+', '?', '&'}
-    }
+    const PATH_ENCODE_SET: &percent_encoding::AsciiSet = &CONTROLS.add(b'+').add(b'?').add(b'&');
     let url = utf8_percent_encode(bigbed_file, PATH_ENCODE_SET);
-    let track_name = Path::new(bigbed_file).file_stem().r()?.to_str().r()?;
+    let track_name = Path::new(bigbed_file).file_stem().ok_or(anyhow!("NoneError"))?.to_str().ok_or(anyhow!("NoneError"))?;
     // write to the trackDb.txt file
     trackdb.write_fmt(format_args!("{}", unindent(&format!(r##"
     
@@ -602,7 +566,7 @@ fn reannotate_regions(
     bamstrand: &[Option<bool>], 
     total_reads: u64,
     options: &Options,
-    trackdb: &mut BufWriter<Box<Write>>) 
+    trackdb: &mut BufWriter<Box<dyn Write>>)
     -> Result<(Vec<ConstituitivePair>,Vec<RpkmStats>)>
 {
     let num_cpus = num_cpus::get();
@@ -643,7 +607,7 @@ fn reannotate_regions(
         let mut tidmap = HashMap::<String,u32>::new();
         {   let header = bam.header();
             for target_name in header.target_names() {
-                let tid = header.tid(target_name).r()?;
+                let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
                 let target_name = String::from(std::str::from_utf8(target_name)?);
                 let chr = annot.chrmap.get(&target_name).unwrap_or(&target_name);
                 tidmap.insert(chr.clone(), tid);
@@ -763,7 +727,7 @@ fn write_bigwig(
     refs: &LinkedHashMap<String,u64>,
     vizchrmap: &HashMap<String,String>,
     strand: &str,
-    trackdb: &mut BufWriter<Box<Write>>,
+    trackdb: &mut BufWriter<Box<dyn Write>>,
     parent: &str,
     write_parent: bool) 
     -> Result<()> 
@@ -825,9 +789,7 @@ fn write_bigwig(
     std::fs::remove_file(&genome_filename)?;
     
     // write to the trackDb file
-    define_encode_set! {
-        pub PATH_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'+', '?', '&'}
-    }
+    const PATH_ENCODE_SET: &percent_encoding::AsciiSet = &CONTROLS.add(b'+').add(b'?').add(b'&');
     let url = utf8_percent_encode(&bigwig_file, PATH_ENCODE_SET);
     let track_name = Path::new(&bigwig_file).file_stem().r()?.to_str().r()?;
     // write to the trackDb.txt file
@@ -984,7 +946,7 @@ fn write_rpkm_stats(
     rpkmstats: &mut[RpkmStats]) 
     -> Result<()> 
 {
-    let mut output: BufWriter<Box<Write>> = BufWriter::new(
+    let mut output: BufWriter<Box<dyn Write>> = BufWriter::new(
         if outfile == "-" { Box::new(stdout()) } 
         else { Box::new(File::create(outfile)?) });
         
@@ -1080,7 +1042,7 @@ fn write_exon_bigbed(
     pairs: &[ConstituitivePair], 
     annot: &IndexedAnnotation,
     file: &str, 
-    trackdb: &mut BufWriter<Box<Write>>) 
+    trackdb: &mut BufWriter<Box<dyn Write>>)
     -> Result<()> 
 {
     // write the bed file
@@ -1161,7 +1123,7 @@ fn write_enriched_annotation(
     reannotated_pairs: &Vec<ConstituitivePair>,
     outannot: &str,
     options: &Options,
-    trackdb: &mut BufWriter<Box<Write>>) 
+    trackdb: &mut BufWriter<Box<dyn Write>>)
     -> Result<()> 
 {
     annot.to_gff(&outannot)?; 
@@ -1604,7 +1566,7 @@ fn run() -> Result<()> {
     }
     
     // set up the trackdb writer
-    let mut trackdb: BufWriter<Box<Write>> = BufWriter::new(
+    let mut trackdb: BufWriter<Box<dyn Write>> = BufWriter::new(
         match options.debug_trackdb.as_ref().map(String::as_ref) {
             Some("-") => Box::new(stdout()),
             Some(f) => Box::new(File::create(f)?),
@@ -1712,7 +1674,7 @@ fn run() -> Result<()> {
     eprintln!("Computing RPKM stats");
     if let Some(ref debug_rpkmstats_json) = options.debug_rpkmstats_json {
         eprintln!("Writing RPKM stats to {:?}", &debug_rpkmstats_json);
-        let mut output: BufWriter<Box<Write>> = BufWriter::new(
+        let mut output: BufWriter<Box<dyn Write>> = BufWriter::new(
             if debug_rpkmstats_json == "-" { Box::new(stdout()) } 
             else { Box::new(File::create(debug_rpkmstats_json)?) });
             serde_json::to_writer_pretty(&mut output, &rpkmstats)?;
@@ -1730,10 +1692,5 @@ fn run() -> Result<()> {
 fn main() {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
-
-    if let Err(ref e) = run() {
-        eprintln!("error: {}", e);
-        eprintln!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }

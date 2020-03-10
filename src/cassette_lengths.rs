@@ -1,16 +1,7 @@
-#![recursion_limit="128"]
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::collections::HashMap;
-
-extern crate bam2bedgraph;
 use bam2bedgraph::indexed_annotation::IndexedAnnotation;
-use bam2bedgraph::error::*;
+use anyhow::{Result, anyhow};
 
-extern crate bio;
-
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -27,7 +18,7 @@ struct Options {
 fn run() -> Result<()> {
     let options = Options::from_args();
     let annot = IndexedAnnotation::from_gff(
-        &options.annotfile_gff.r()?, 
+        &options.annotfile_gff.ok_or(anyhow!("NoneError"))?,
         &None,
         &None)?;
     println!("row\tgene_name\tother_gene_name\tcassette_location\tcassette_length");
@@ -80,11 +71,7 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     std::env::set_var("RUST_BACKTRACE", "full");
-    if let Err(ref e) = run() {
-        eprintln!("error: {}", e);
-        eprintln!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }

@@ -1,70 +1,17 @@
-#![recursion_limit = "1024"]
 use std::vec::Vec;
 use std::ops::Range;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-
-extern crate linked_hash_map;
 use linked_hash_map::LinkedHashMap;
-
-#[macro_use] 
-extern crate lazy_static;
-
-extern crate regex;
-
-extern crate rust_htslib;
 use rust_htslib::bam::record::Cigar;
 use rust_htslib::bam::record::CigarStringView;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;
-
-extern crate bio;
-
-extern crate csv;
-
-#[macro_use]
-extern crate failure;
-
-extern crate structopt;
-
-#[macro_use]
-extern crate duct;
-
-extern crate serde;
-extern crate serde_json;
-
-#[macro_use]
-extern crate url;
-
-extern crate itertools;
-
-extern crate unindent;
+use anyhow::{Result, anyhow};
+use duct::cmd;
 
 pub mod indexed_annotation;
-
-pub mod error {
-    pub type Result<T> = ::std::result::Result<T, ::failure::Error>;
-
-    #[derive(Debug, Fail)]
-    enum NoneError {
-        #[fail(display = "Option value is None")]
-        NoneError {}
-    }
-
-    pub trait ToResult<T> {
-        fn r(self) -> Result<T>;
-    }
-    impl<T> ToResult<T> for Option<T> {
-        fn r(self) -> Result<T> {
-            match self {
-                Some(v) => Ok(v),
-                None => Err(NoneError::NoneError{}.into()),
-            }
-        }
-    }
-}
-use ::error::*;
 
 pub mod power_set {
     pub struct PowerSet<'a, T: 'a> {
@@ -136,7 +83,7 @@ pub fn read_sizes_file(sizes_file: &str, chrmap: &HashMap<String,String>) -> Res
                         refs.insert(chr.clone(), size);
                     }
                     else {
-                        bail!("Could not parse size \"{}\" for chr \"{}\" from line \"{}\" of file \"{}\"", size, chr, line, sizes_file);
+                        anyhow!("Could not parse size \"{}\" for chr \"{}\" from line \"{}\" of file \"{}\"", size, chr, line, sizes_file);
                     }
                 }
             }
@@ -159,8 +106,8 @@ pub fn get_bam_refs(bamfile: &str, chrmap: &HashMap<String,String>) -> Result<Li
     let header = bam.header();
     let target_names = header.target_names();
     for target_name in target_names {
-        let tid = header.tid(target_name).r()?;
-        let target_len = header.target_len(tid).r()? as u64;
+        let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
+        let target_len = header.target_len(tid).ok_or(anyhow!("NoneError"))? as u64;
         let target_name = String::from(std::str::from_utf8(target_name)?);
         let chr = chrmap.get(&target_name).unwrap_or(&target_name);
         refs.insert(chr.clone(), target_len);

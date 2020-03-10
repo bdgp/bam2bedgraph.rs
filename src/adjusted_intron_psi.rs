@@ -1,5 +1,3 @@
-#![recursion_limit="128"]
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::str;
 use std::vec::Vec;
 use std::collections::HashMap;
@@ -9,36 +7,19 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::cmp::{min, max};
 use std::ops::Range;
+use anyhow::{Result, anyhow};
+use serde::{Serialize, Deserialize};
 
-#[macro_use] 
-extern crate failure;
-
-extern crate bam2bedgraph;
 use bam2bedgraph::*;
-use bam2bedgraph::error::*;
 use bam2bedgraph::indexed_annotation::*;
 
-extern crate rust_htslib;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;
 
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
 use structopt::StructOpt;
 
-extern crate futures;
-use futures::Future;
-extern crate futures_cpupool;
+use futures::future::Future;
 use futures_cpupool::CpuPool;
-
-extern crate num_cpus;
-
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-
-extern crate csv;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "adjusted_intron_cov", about = "Compute adjusted intron coverage and PSI values from spladder output")]
@@ -132,7 +113,7 @@ fn write_intron_cov(
     annot: &Arc<IndexedAnnotation>)
     -> Result<()> 
 {
-    let input: Box<std::io::Read> = match options.input.as_ref() {
+    let input: Box<dyn std::io::Read> = match options.input.as_ref() {
         "-" => Box::new(std::io::stdin()),
         _ => Box::new(std::fs::File::open(&options.input)? )};
 
@@ -147,7 +128,7 @@ fn write_intron_cov(
         let mut tidmap = HashMap::<String,u32>::new();
         {   let header = bam.header();
             for target_name in header.target_names() {
-                let tid = header.tid(target_name).r()?;
+                let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
                 let target_name = String::from(std::str::from_utf8(target_name)?);
                 let chr = annot.chrmap.get(&target_name).unwrap_or(&target_name);
                 tidmap.insert(chr.clone(), tid);

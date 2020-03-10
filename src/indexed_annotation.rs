@@ -9,7 +9,6 @@ use percent_encoding::{percent_decode, utf8_percent_encode, CONTROLS, AsciiSet};
 use bio::data_structures::interval_tree::IntervalTree;
 use bio::utils::Interval;
 use bio::alphabets::dna;
-use std;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, BufRead, Write};
 use std::io::stdout;
@@ -17,7 +16,9 @@ use std::ops::Range;
 use std::path::Path;
 use itertools::Itertools;
 use unindent::unindent;
-use ::error::*;
+use lazy_static::lazy_static;
+use anyhow::{Result, anyhow};
+use duct::cmd;
 
 #[derive(Default, Clone, Debug)]
 pub struct Record {
@@ -83,7 +84,7 @@ impl Record {
             static ref GTF_ATTR: Regex = Regex::new(r#"^(?P<key>\S+)\s+(?:"(?P<qval>[^"]*)"|(?P<val>\S+));\s*"#).unwrap();
         }
         if COMMENT.is_match(line) {
-            bail!("Comment");
+            anyhow!("Comment");
         }
         let fields: Vec<_> = line.split('\t').collect();
         let seqname = String::from(*fields.get(0).unwrap_or(&""));
@@ -111,7 +112,7 @@ impl Record {
                      String::from(caps.name("qval").unwrap_or_else(|| caps.name("val").unwrap()).as_str().to_string()))
                 }).collect()
             } else {
-                bail!("Don't know how to read filetype {}", filetype);
+                return Err(anyhow!("Don't know how to read filetype {}", filetype))
             },
         })
     }
@@ -356,10 +357,10 @@ impl IndexedAnnotation {
                 let mut strand = HashMap::<String, u64>::new();
                 for c in &children {
                     let child = &rows[*c];
-                    if start.is_none() || child.start < start.r()? {
+                    if start.is_none() || child.start < start.ok_or(anyhow!("NoneError"))? {
                         start = Some(child.start);
                     }
-                    if end.is_none() || child.end > end.r()? {
+                    if end.is_none() || child.end > end.ok_or(anyhow!("NoneError"))? {
                         end = Some(child.end);
                     }
                     *seqname.entry(child.seqname.clone()).or_insert(0u64) += 1;
@@ -723,7 +724,7 @@ impl IndexedAnnotation {
 
         const PATH_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'+').add(b'?').add(b'&');
         let url = utf8_percent_encode(file, PATH_ENCODE_SET);
-        let track_name = Path::new(file).file_stem().r()?.to_str().r()?;
+        let track_name = Path::new(file).file_stem().ok_or(anyhow!("NoneError"))?.to_str().ok_or(anyhow!("NoneError"))?;
         // write to the trackDb.txt file
         trackdb.write_fmt(format_args!("{}", unindent(&format!(r##"
         
@@ -824,14 +825,14 @@ impl IndexedAnnotation {
                                     let exon = &self.rows[*exon_row];
                                     if let Some(seq) = genome.get(&exon.seqname) {
                                         if exon.end as usize > seq.1.len() {
-                                            bail!("to_fasta: Range {}..{} of exon at row {} exceeds sequence for {} in file {}!", 
+                                            anyhow!("to_fasta: Range {}..{} of exon at row {} exceeds sequence for {} in file {}!",
                                                 exon.start-1, exon.end, exon_row, exon.seqname, genome_file);
                                         }
                                         let exon_seq = &seq.1[(exon.start-1) as usize..exon.end as usize];
                                         transcript_seq.push_str(&exon_seq);
                                     }
                                     else {
-                                        bail!("to_fasta: Could not find fasta sequence for {} in file {}!",
+                                        anyhow!("to_fasta: Could not find fasta sequence for {} in file {}!",
                                             exon.seqname, genome_file);
                                     }
                                 }
@@ -845,9 +846,9 @@ impl IndexedAnnotation {
                                     transcript.attributes.get("ID")).
                                     map(|a| a.to_owned());
                                 if transcript_name.is_none() {
-                                    bail!("Could not get ID for transcript at row {}", transcript_row);
+                                    anyhow!("Could not get ID for transcript at row {}", transcript_row);
                                 }
-                                let transcript_name = transcript_name.r()?;
+                                let transcript_name = transcript_name.ok_or(anyhow!("NoneError"))?;
                                 lazy_static! {
                                     static ref FASTA_FORMAT: Regex = Regex::new(r".{1,72}").unwrap();
                                 }

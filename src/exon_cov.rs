@@ -1,5 +1,3 @@
-#![recursion_limit="128"]
-#![cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity, trivial_regex))]
 use std::str;
 use std::vec::Vec;
 use std::collections::HashMap;
@@ -9,32 +7,18 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::io::stdout;
 use std::ops::Range;
+use anyhow::{Result, anyhow};
 
-#[macro_use] 
-extern crate failure;
-
-extern crate bam2bedgraph;
 use bam2bedgraph::*;
-use bam2bedgraph::error::*;
 use bam2bedgraph::indexed_annotation::*;
 
-extern crate rust_htslib;
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;
 
-extern crate structopt;
-#[macro_use]
-extern crate structopt_derive;
 use structopt::StructOpt;
 
-extern crate futures;
-use futures::Future;
-extern crate futures_cpupool;
 use futures_cpupool::CpuPool;
 
-extern crate num_cpus;
-
-extern crate ordered_float;
 use ordered_float::OrderedFloat;
 
 #[derive(StructOpt, Debug)]
@@ -101,7 +85,7 @@ fn write_exon_cov(
         let mut tidmap = HashMap::<String,u32>::new();
         {   let header = bam.header();
             for target_name in header.target_names() {
-                let tid = header.tid(target_name).r()?;
+                let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
                 let target_name = String::from(std::str::from_utf8(target_name)?);
                 let chr = annot.chrmap.get(&target_name).unwrap_or(&target_name);
                 tidmap.insert(chr.clone(), tid);
@@ -198,7 +182,7 @@ fn write_exon_cov_to_file(
     annot: &Arc<IndexedAnnotation>) 
     -> Result<()> 
 {
-    let mut output: BufWriter<Box<Write>> = BufWriter::new(
+    let mut output: BufWriter<Box<dyn Write>> = BufWriter::new(
         if outfile == "-" { Box::new(stdout()) }
             else { Box::new(File::create(&outfile)?) });
 
