@@ -4,8 +4,8 @@ use std::io::{BufWriter, Write};
 use std::io::{stdout, sink};
 use anyhow::{Result, anyhow};
 
-use bam2bedgraph::*;
-use bam2bedgraph::indexed_annotation::*;
+use cassette_reannotation::*;
+use cassette_reannotation::indexed_annotation::*;
 
 use structopt::StructOpt;
 

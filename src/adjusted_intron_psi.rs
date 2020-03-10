@@ -10,8 +10,8 @@ use std::ops::Range;
 use anyhow::{Result, anyhow};
 use serde::{Serialize, Deserialize};
 
-use bam2bedgraph::*;
-use bam2bedgraph::indexed_annotation::*;
+use cassette_reannotation::*;
+use cassette_reannotation::indexed_annotation::*;
 
 use rust_htslib::bam::Read;
 use rust_htslib::bam::IndexedReader;

@@ -44,7 +44,7 @@ version = "*"
 default-features = false
 
 [lib]
-name = "bam2bedgraph"
+name = "cassette_reannotation"
 path = "src/lib.rs"
 
 [[bin]]

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use bam2bedgraph::indexed_annotation::IndexedAnnotation;
+use cassette_reannotation::indexed_annotation::IndexedAnnotation;
 use anyhow::{Result, anyhow};
 
 use structopt::StructOpt;

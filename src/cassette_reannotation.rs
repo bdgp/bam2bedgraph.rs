@@ -14,9 +14,9 @@ use duct::cmd;
 use lazy_static::lazy_static;
 use anyhow::{Result, anyhow};
 
-use bam2bedgraph::*;
-use bam2bedgraph::power_set::*;
-use bam2bedgraph::indexed_annotation::*;
+use cassette_reannotation::*;
+use cassette_reannotation::power_set::*;
+use cassette_reannotation::indexed_annotation::*;
 
 use percent_encoding::{utf8_percent_encode, CONTROLS};
 

@@ -19,7 +19,7 @@ use bio::utils::Interval;
 
 use structopt::StructOpt;
 
-use bam2bedgraph::cigar2exons;
+use cassette_reannotation::cigar2exons;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "bam2bedgraph", about = "Convert bam files to bedgraph/bigWig format")]
