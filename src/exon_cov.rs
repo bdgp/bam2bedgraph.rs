@@ -18,6 +18,7 @@ use rust_htslib::bam::IndexedReader;
 use structopt::StructOpt;
 
 use futures_cpupool::CpuPool;
+use futures::future::Future;
 
 use ordered_float::OrderedFloat;
 
@@ -340,7 +341,7 @@ fn run() -> Result<()> {
     } else if let Some(annotfile_gtf) = options.annotfile_gtf.clone() {
         eprintln!("Reading annotation file {:?}", &annotfile_gtf);
         IndexedAnnotation::from_gtf(&annotfile_gtf, 
-            options.gene_type.get(0).r()?, 
+            options.gene_type.get(0).ok_or(anyhow!("NoneError"))?,
             options.transcript_type.get(0).unwrap_or(&transcript_type),
             &options.chrmap_file,
             &options.vizchrmap_file)?
@@ -364,13 +365,8 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
-
-    if let Err(ref e) = run() {
-        eprintln!("error: {}", e);
-        eprintln!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }

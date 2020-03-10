@@ -17,7 +17,6 @@ lazy_static = "*"
 serde_derive = "*"
 serde_json = "*"
 unindent = "*"
-futures = "*"
 futures-cpupool = "*"
 num_cpus = "*"
 ordered-float = "*"
@@ -31,6 +30,10 @@ percent-encoding = "*"
 [dependencies.serde]
 version = "*"
 features = ["std"]
+
+[dependencies.futures]
+version = "0.1"
+features = ["use_std"]
 
 [dependencies.linked-hash-map]
 version = "*"

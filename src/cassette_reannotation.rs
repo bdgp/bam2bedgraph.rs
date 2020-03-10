@@ -709,12 +709,12 @@ fn reannotate_regions(
     if options.debug_bigwig.is_some() { 
         let plus_parent = format!("{}_+", options.debug_prefix);
         let minus_parent = format!("{}_-", options.debug_prefix);
-        let start_prefix = format!("{}.start", &options.debug_bigwig.clone().r()?);
-        let end_prefix = format!("{}.end", &options.debug_bigwig.clone().r()?);
-        write_bigwig(&options.debug_bigwig.clone().r()?, &plus_bw_histo, &annot.refs, &annot.vizchrmap, "+", trackdb, &plus_parent, true)?;
+        let start_prefix = format!("{}.start", &options.debug_bigwig.clone().ok_or(anyhow!("NoneError"))?);
+        let end_prefix = format!("{}.end", &options.debug_bigwig.clone().ok_or(anyhow!("NoneError"))?);
+        write_bigwig(&options.debug_bigwig.clone().ok_or(anyhow!("NoneError"))?, &plus_bw_histo, &annot.refs, &annot.vizchrmap, "+", trackdb, &plus_parent, true)?;
         write_bigwig(&start_prefix, &start_plus_bw_histo, &annot.refs, &annot.vizchrmap, "+", trackdb, &plus_parent, false)?;
         write_bigwig(&end_prefix, &end_plus_bw_histo, &annot.refs, &annot.vizchrmap, "+", trackdb, &plus_parent, false)?;
-        write_bigwig(&options.debug_bigwig.clone().r()?, &minus_bw_histo, &annot.refs, &annot.vizchrmap, "-", trackdb, &minus_parent, true)?;
+        write_bigwig(&options.debug_bigwig.clone().ok_or(anyhow!("NoneError"))?, &minus_bw_histo, &annot.refs, &annot.vizchrmap, "-", trackdb, &minus_parent, true)?;
         write_bigwig(&start_prefix, &start_minus_bw_histo, &annot.refs, &annot.vizchrmap, "-", trackdb, &minus_parent, false)?;
         write_bigwig(&end_prefix, &end_minus_bw_histo, &annot.refs, &annot.vizchrmap, "-", trackdb, &minus_parent, false)?;
     }
@@ -791,7 +791,7 @@ fn write_bigwig(
     // write to the trackDb file
     const PATH_ENCODE_SET: &percent_encoding::AsciiSet = &CONTROLS.add(b'+').add(b'?').add(b'&');
     let url = utf8_percent_encode(&bigwig_file, PATH_ENCODE_SET);
-    let track_name = Path::new(&bigwig_file).file_stem().r()?.to_str().r()?;
+    let track_name = Path::new(&bigwig_file).file_stem().ok_or(anyhow!("NoneError"))?.to_str().ok_or(anyhow!("NoneError"))?;
     // write to the trackDb.txt file
     if write_parent {
         let viewlimits = if strand == "-" { "-50:0" } else { "0:50" };
@@ -1603,7 +1603,7 @@ fn run() -> Result<()> {
     } else if let Some(annotfile_gtf) = options.annotfile_gtf.clone() {
         eprintln!("Reading annotation file {:?}", &annotfile_gtf);
         IndexedAnnotation::from_gtf(&annotfile_gtf, 
-            options.gene_type.get(0).r()?, 
+            options.gene_type.get(0).ok_or(anyhow!("NoneError"))?,
             options.transcript_type.get(0).unwrap_or(&transcript_type),
             &options.chrmap_file,
             &options.vizchrmap_file)?
@@ -1689,7 +1689,7 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
     run()

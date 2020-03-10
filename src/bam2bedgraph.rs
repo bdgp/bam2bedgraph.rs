@@ -176,8 +176,8 @@ fn analyze_bam(options: &Options,
     let mut refs = vec![(0, "".to_string()); header.target_count() as usize];
     let target_names = header.target_names();
     for target_name in target_names {
-        let tid = header.tid(target_name).r()?;
-        let target_len = header.target_len(tid).r()?;
+        let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
+        let target_len = header.target_len(tid).ok_or(anyhow!("NoneError"))?;
         let target_name = std::str::from_utf8(target_name)?;
         refs[tid as usize] = (target_len, target_name.to_string());
     }
@@ -245,7 +245,7 @@ fn analyze_bam(options: &Options,
         // skip if it's not unique and we want unique alignments
         if options.uniq {
             let hits = read.aux("NH".to_string().as_bytes());
-            if hits == None || hits.r()?.integer() != 1 {
+            if hits == None || hits.ok_or(anyhow!("NoneError"))?.integer() != 1 {
                 continue;
             }
         }
@@ -253,8 +253,8 @@ fn analyze_bam(options: &Options,
         let mut exons: Vec<Range<u64>> = Vec::new();
         let mut get_exons = cigar2exons(&read.cigar(), read.pos() as u64)?;
         if options.nosplit_exons && !get_exons.is_empty() {
-            let first = get_exons.get(0).r()?;
-            let last = get_exons.get(get_exons.len() - 1).r()?;
+            let first = get_exons.get(0).ok_or(anyhow!("NoneError"))?;
+            let last = get_exons.get(get_exons.len() - 1).ok_or(anyhow!("NoneError"))?;
             // if the exon does not have positive width, skip it
             if last.end - first.start <= 0 {
                 continue;
@@ -270,20 +270,20 @@ fn analyze_bam(options: &Options,
         // let xs = read.aux("XS".as_bytes());
         let strand = 
         //if xs.is_some() {
-         //   str::from_utf8(xs.r()?.string())?
+         //   str::from_utf8(xs.ok_or(anyhow!("NoneError"))?.string())?
         //} else 
         if read_number == 1 {
-                if split_strand.chars().nth(0).r()? == 'r' {
+                if split_strand.chars().nth(0).ok_or(anyhow!("NoneError"))? == 'r' {
                     if read.is_reverse() { "+" } else { "-" }
-                } else if split_strand.chars().nth(0).r()? == 's' {
+                } else if split_strand.chars().nth(0).ok_or(anyhow!("NoneError"))? == 's' {
                     if read.is_reverse() { "-" } else { "+" }
                 } else {
                     ""
                 }
             } else if read_number == 2 {
-                if split_strand.chars().nth(1).r()? == 's' {
+                if split_strand.chars().nth(1).ok_or(anyhow!("NoneError"))? == 's' {
                     if read.is_reverse() { "-" } else { "+" }
-                } else if split_strand.chars().nth(1).r()? == 'r' {
+                } else if split_strand.chars().nth(1).ok_or(anyhow!("NoneError"))? == 'r' {
                     if read.is_reverse() { "+" } else { "-" }
                 } else {
                     ""
@@ -301,7 +301,7 @@ fn analyze_bam(options: &Options,
             // try to determine the strandedness of the data
             if autostrand_pass {
                 if intervals.is_some() {
-                    let intervals = intervals.as_ref().r()?;
+                    let intervals = intervals.as_ref().ok_or(anyhow!("NoneError"))?;
                     if intervals.contains_key(&refs[lastchr as usize].1) {
                         for r in intervals[&refs[lastchr as usize].1].find(&exon) {
                             let overlap_length = std::cmp::min(exon.end, r.interval().end) -
@@ -313,10 +313,10 @@ fn analyze_bam(options: &Options,
                                 'r'
                             };
                             if read_number == 1 {
-                                let at = autostrand_totals.get_mut(&strandtype).r()?;
+                                let at = autostrand_totals.get_mut(&strandtype).ok_or(anyhow!("NoneError"))?;
                                 *at += overlap_length as i64
                             } else if read_number == 2 {
-                                let at2 = autostrand_totals2.get_mut(&strandtype).r()?;
+                                let at2 = autostrand_totals2.get_mut(&strandtype).ok_or(anyhow!("NoneError"))?;
                                 *at2 += overlap_length as i64
                             }
                         }
@@ -332,11 +332,11 @@ fn analyze_bam(options: &Options,
                     refs[read.tid() as usize].0 = exon.end as u32;
                 }
                 if histogram[&tuple].len() < ref_length as usize {
-                    let h = histogram.get_mut(&tuple).r()?;
+                    let h = histogram.get_mut(&tuple).ok_or(anyhow!("NoneError"))?;
                     h.resize(ref_length as usize, 0);
                 }
 
-                let h = histogram.get_mut(&tuple).r()?;
+                let h = histogram.get_mut(&tuple).ok_or(anyhow!("NoneError"))?;
                 for pos in std::cmp::max(0u64, exon.start)..std::cmp::min(ref_length as u64, exon.end)
                 {
                     (*h)[pos as usize] += 1;
@@ -500,8 +500,8 @@ fn run() -> Result<()> {
         let mut refs = vec![(0, "".to_string()); header.target_count() as usize];
         let target_names = header.target_names();
         for target_name in target_names {
-            let tid = header.tid(target_name).r()?;
-            let target_len = header.target_len(tid).r()?;
+            let tid = header.tid(target_name).ok_or(anyhow!("NoneError"))?;
+            let target_len = header.target_len(tid).ok_or(anyhow!("NoneError"))?;
             let target_name = std::str::from_utf8(target_name)?;
             refs[tid as usize] = (target_len, target_name.to_string());
         }
@@ -525,7 +525,7 @@ fn run() -> Result<()> {
             }
 
             let exons = cigar2exons(&read.cigar(), read.pos() as u64)?;
-            let interval_list = interval_lists.get_mut(&chr).r()?;
+            let interval_list = interval_lists.get_mut(&chr).ok_or(anyhow!("NoneError"))?;
             for exon in exons {
                 interval_list.push((Interval::new(exon)?,
                                     if read.is_reverse() { b'-' } else { b'+' }));
@@ -535,7 +535,7 @@ fn run() -> Result<()> {
             if intervals.is_none() {
                 intervals = Some(BTreeMap::new());
             }
-            let interval = intervals.as_mut().r()?;
+            let interval = intervals.as_mut().ok_or(anyhow!("NoneError"))?;
             let mut tree = IntervalTree::<u64, u8>::new();
             for l in list {
                 tree.insert(l.0.clone(), l.1);
@@ -561,13 +561,8 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
-
-    if let Err(ref e) = run() {
-        println!("error: {}", e);
-        println!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }

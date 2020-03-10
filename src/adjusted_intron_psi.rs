@@ -117,7 +117,7 @@ fn write_intron_cov(
         "-" => Box::new(std::io::stdin()),
         _ => Box::new(std::fs::File::open(&options.input)? )};
 
-    let output: BufWriter<Box<Write>> = BufWriter::new(
+    let output: BufWriter<Box<dyn Write>> = BufWriter::new(
         if options.outfile == "-" { Box::new(std::io::stdout()) }
             else { Box::new(File::create(&options.outfile)?) });
 
@@ -337,7 +337,7 @@ fn run() -> Result<()> {
     } else if let Some(annotfile_gtf) = options.annotfile_gtf.clone() {
         eprintln!("Reading annotation file {:?}", &annotfile_gtf);
         IndexedAnnotation::from_gtf(&annotfile_gtf, 
-            options.gene_type.get(0).r()?, 
+            options.gene_type.get(0).ok_or(anyhow!("NoneError"))?,
             options.transcript_type.get(0).unwrap_or(&transcript_type),
             &options.chrmap_file,
             &options.vizchrmap_file)?
@@ -361,13 +361,8 @@ fn run() -> Result<()> {
     Ok(())
 }
 
-fn main() {
+fn main() -> Result<()> {
     // enable stack traces
     std::env::set_var("RUST_BACKTRACE", "full");
-
-    if let Err(ref e) = run() {
-        eprintln!("error: {}", e);
-        eprintln!("backtrace: {:?}", e.backtrace());
-        ::std::process::exit(1);
-    }
+    run()
 }
